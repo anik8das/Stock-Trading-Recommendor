@@ -77,7 +77,10 @@ for i in sym: # Iterating through Tickers
                 meanrec = np.mean(data1.loc["Adj Close"][-10:-2])
                 meanold = np.mean(data1.loc["Adj Close"][0:10])
                 if((meanrec - meanold)/meanold > 0.01):
-                    symlist.append(i)
+                    midmean = np.mean(data1.loc["Adj Close"][25:35])
+                    lhm = (meanrec+meanold)/2
+                    if(midmean > 0.85*lhm and midmean < 1.15*lhm):
+                        symlist.append(i)
                 else:
                     cv = np.std(data1.loc[prevtod:yday]["Adj Close"])/monmean
                     monchng = (data1.loc[0:10]["Adj Close"] - data[-2:-11]["Adj Close"])/data1.loc[0:10]["Adj Close"]

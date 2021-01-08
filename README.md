@@ -1,2 +1,4 @@
 # Options_Trading_Recommendor
 A Python program to suggest Stocks that have the potential to statistically return the highest call profits by analyzing progression, drop, and availability.
+Stock prices are retreived using the YFinance library, dates are calculated using the DateTime package, read/write is done using pandas, and numpy is used for statistical calculations. 
+Stocks are first checked for their options trading validity. Stocks with both crash after continuous progresion as well as consistent mean with significant deviation are considered optimal for long term and short term options trading, respectively (because of value and volatility). Volatility is evaluated using a combination of standard deviation and means, while progression is calculated using start, mid, and end moving means. 

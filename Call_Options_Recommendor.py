@@ -56,35 +56,37 @@ plt.plot(baba["Close"])
 sym = df["Symbol"]
 symlist = []
 for i in sym: # Iterating through Tickers
-    temp = yf.Ticker(sym)
+    temp = yf.Ticker(i)
     if(temp.options == ()): # Only continuing if options for the Stock exist
         continue
     with HiddenPrints(): # Hiding the unnecessary output while downloading 
         data = yf.download(i,start = prevtod, end = tod)
     if(len(data)>=2): # Continuing only if the data is non-empty
-        chng = ((data["Adj Close"][-1] - data["Adj Close"][-2]) / data["Adj Close"][-2]) * 100
-        if(chng < -5): # If the stock dropped by more than 5%
+        chng = ((data["Adj Close"][-1] - data["Adj Close"][-2]) / data["Adj Close"][-2]) * 100 # calculating the change in the single last day
+        if(chng <= -3): # If the stock dropped by more than 5%
             data1 = yf.download(i, start = prevyear, end = tod)
             meanrec = np.mean(data1.loc["Adj Close"][-10:-2]) 
             meanold = np.mean(data1.loc["Adj Close"][0:10])
-            if((meanrec - meanold)/meanold > 0.01): # Comparing running mean values from the start till the end of the year
-                symlist.append(i)
+            if((meanrec - meanold)/meanold > 0.25): # Comparing running mean values from the start till the end of the year
+                midmean = np.mean(data1.loc["Adj Close"][177:187])
+                lhm = (meanrec+meanold)/2
+                if(midmean > 0.85*lhm and midmean < 1.15*lhm):
+                    symlist.append(i)
         else:
             monmean = np.mean(data.loc[prevtod:yday]["Adj Close"])
             chng = (data["Adj Close"][-1] - monmean)/monmean * 100
-            if(chng < -5):
+            if(chng < -3):
                 data1 = yf.download(i, start = prevyear, end = tod)
-                meanrec = np.mean(data1.loc["Adj Close"][-10:-2])
+                meanrec = np.mean(data1.loc["Adj Close"][-11:-2])
                 meanold = np.mean(data1.loc["Adj Close"][0:10])
-                if((meanrec - meanold)/meanold > 0.01):
-                    midmean = np.mean(data1.loc["Adj Close"][25:35])
+                if((meanrec - meanold)/meanold > 0.25):
+                    midmean = np.mean(data1.loc["Adj Close"][177:187])
                     lhm = (meanrec+meanold)/2
                     if(midmean > 0.85*lhm and midmean < 1.15*lhm):
                         symlist.append(i)
                 else:
                     cv = np.std(data1.loc[prevtod:yday]["Adj Close"])/monmean
-                    monchng = (data1.loc[0:10]["Adj Close"] - data[-2:-11]["Adj Close"])/data1.loc[0:10]["Adj Close"]
-                    if(cv > 0.1 and monchng>-0.05):
+                    if(cv > 0.1 and (meanrec - meanold)/meanold > - 0.05):
                         symlist.append(i)
     
 #%%
@@ -95,8 +97,5 @@ chng = (data["Adj Close"][-1] - monmean)/monmean * 100
 print(monmean, data["Adj Close"][-1],chng)
 
 #%%
-data1 = yf.download("AAPL", start = prevyear, end = tod)
-print(data1["Adj Close"][0])
-print(data1["Adj Close"])
-import sys
-print(sys.getsizeof(data1))
+data = yf.Ticker("TBIO")
+print(data.recommendation)

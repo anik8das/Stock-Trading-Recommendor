@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Value Investing Recommendor
 
@@ -8,8 +7,9 @@ Stocks are checked for:
     3. Yearly change: At least up 25% over the last year
     4. Country: Chinese stocks are avoided due to unreliability
     5. Dollar volume: At least 500 million
-    6. The parameters can be changed through the constructor
-    7. Final object is memoized in an external file to prevent needless recalculation
+    6. Suggested stocks are updated every 30 days
+    7. The parameters can be changed through the constructor
+    8. Final object is memoized in an external file to prevent needless recalculation
 
 """
     
@@ -47,7 +47,7 @@ def perchange(A,B):
 
 class ValueInvest:
     
-    # contructor
+    # Contructor
     def __init__(self, minrec = 0.5, minychnge = 25, minmc = 50000000000, mindv = 500000000, update_interval = 30):
         self.minrec = minrec # Minimum threshold for recommendation
         self.minychnge = minychnge # Minimum gain over the last year
@@ -55,23 +55,23 @@ class ValueInvest:
         self.mindv = mindv # Minimum dollar volume
         df= pd.read_csv("ftp://ftp.nasdaqtrader.com/SymbolDirectory/nasdaqlisted.txt", sep="|")
         self.all_sym_lst = df["Symbol"] # List containing the symbols of every stock on Nasdaq
-        self.rec = {"stocks":[], "last_update": datetime.min} # Objects containing information for recommendation, trend, and financial symbols
-        self.fin = {"stocks":[], "last_update": datetime.min}
-        self.trend = {"stocks":{}, "last_update": datetime.min}
+        self.rec = {"stocks":[], "last_updated": datetime.min} # Objects containing information for recommendation, trend, and financial symbols
+        self.fin = {"stocks":[], "last_updated": datetime.min}
+        self.trend = {"stocks":{}, "last_updated": datetime.min}
         self.update_interval = update_interval # Interval at which stocks are updated
         self.final_suggestions = [] # List containing final suggestions
         
-    # default function to update the class
+    # Function to update the class
     def check_for_updates(self):
-        if(((datetime.now() - self.trend["last_update"]).days) >= 10):
+        if(((datetime.now() - self.trend["last_updated"]).days) >= self.update_interval):
             self.update_trend()
-        if(((datetime.now() - self.rec["last_update"]).days) >= 10):
+        if(((datetime.now() - self.rec["last_updated"]).days) >= self.update_interval):
             self.update_rec()
-        if(((datetime.now() - self.fin["last_update"]).days) >= 10):
+        if(((datetime.now() - self.fin["last_updated"]).days) >= self.update_interval):
             self.update_fin()
         self.final_suggestions = set(list(self.trend["stocks"].keys()))&set(self.rec["stocks"])&set(self.fin["stocks"])
     
-    # function to update desired trend following stocks
+    # Function to update desired trend following stocks
     def update_trend(self):
         temp_trend = {}        
         for i in self.all_sym_lst:
@@ -85,9 +85,9 @@ class ValueInvest:
                 print("Adding ",i," to trend stocks")
                 temp_trend[i] = pot
         self.trend["stocks"] = temp_trend
-        self.trend["last_update"] = datetime.now()
+        self.trend["last_updated"] = datetime.now()
         
-    # function to update recommended stocks
+    # Function to update recommended stocks
     def update_rec(self):
         temp_recs = []
         lst = self.all_sym_lst if (list(self.trend.stocks.keys()) == []) else list(self.trend.stocks.keys())
@@ -117,9 +117,9 @@ class ValueInvest:
             except:
                 print("Error with symbol ",i)
         self.rec["stocks"] = temp_recs
-        self.rec["last_update"] = datetime.now()
+        self.rec["last_updated"] = datetime.now()
         
-    # function to update stocks satisfying financial requirements
+    # Function to update stocks satisfying financial requirements
     def update_fin(self):
         temp_fin = []
         lst = (self.all_sym_lst if (list(self.trend["stocks"].keys()) == []) else list(self.trend["stocks"].keys())) if self.rec['stocks']==[] else self.rec['stocks']
@@ -134,14 +134,15 @@ class ValueInvest:
             print("Adding ",i," to financially strong stocks")
             temp_fin.append(i)
         self.fin["stocks"] = temp_fin
-        self.fin["last_update"] = datetime.now()
+        self.fin["last_updated"] = datetime.now()
     
-    
-    def get_suggestions(self): # To print the final list of suggested stocks
+    # Function to return the final list of suggested stocks
+    def get_suggestions(self): 
         return self.final_suggestions
     
-    def memo(self): # To store the object in an external file for future efficiency
-        with open('memo.dictionary', 'wb') as memo_dictionary_file:
+    # Function to store the object in an external file for future efficiency
+    def memo(self): 
+        with open('memoValue.dictionary', 'wb') as memo_dictionary_file:
             pickle.dump(self, memo_dictionary_file)
             print("object memoized!")
             
@@ -149,7 +150,7 @@ class ValueInvest:
 #%%
 # Example to use the above class
 
-with open('memo.dictionary', 'rb') as memo_dictionary_file: # Checking if an object has already been memoized
+with open('memoValue.dictionary', 'rb') as memo_dictionary_file: # Checking if an object has already been memoized
     obj = pickle.load(memo_dictionary_file)
     
 if(obj.get_suggestions()==[]): # If the extracted object is empty, then a new object is created and memoized 
@@ -159,4 +160,3 @@ if(obj.get_suggestions()==[]): # If the extracted object is empty, then a new ob
     obj.memo()
 else:
     obj.get_suggestions()
-    

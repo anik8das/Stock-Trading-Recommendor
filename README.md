@@ -1,5 +1,5 @@
 # Stock-Trading-Recommendor
-A Python program to suggest Stocks for Value Investing, Call Options trading, and Put Options trading. Recommendors are implemented as classes, and the specific criteria can be modified through parameters to the constructor.
+A Python program to suggest Stocks for Value Investing, Call Options trading, and Put Options trading. Recommendors are implemented as classes, and the specific criteria can be modified through parameters passed to the constructor.
 
 ### Libraries used
 1. yfinance for stock data, history, and properties
